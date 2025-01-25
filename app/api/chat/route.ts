@@ -3,11 +3,16 @@ import { geminiService } from '@/services/geminiService';
 
 const TIMEOUT_MS = 15000;
 
+interface Message {
+  content: string;
+  role?: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     
-    if (!body.messages || !Array.isArray(body.messages)) {
+    if (!body.messages || !Array.isArray(body.messages) || !body.messages.every((m: Message) => typeof m.content === 'string')) {
       return NextResponse.json(
         { error: 'Invalid message format' },
         { status: 400 }
