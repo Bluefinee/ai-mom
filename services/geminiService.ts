@@ -72,3 +72,5 @@ export class GeminiService {
     }
   }
 }
+
+export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
