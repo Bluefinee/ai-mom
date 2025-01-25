@@ -86,12 +86,8 @@ export class GeminiService {
       if (!Array.isArray(messages) || messages.length === 0) {
         throw new Error('Invalid conversation history');
       }
-
+  
       const chat = model.startChat({
-        // history: messages.map(msg => ({
-        //   role: this.mapRole(msg.role),
-        //   parts: [{ text: msg.content }],
-        // })),
         generationConfig: {
           maxOutputTokens: 1000,
           temperature: 0.7,
@@ -99,25 +95,20 @@ export class GeminiService {
           topK: 40,
         },
       });
-
+  
       const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
-      const result = await chat.sendMessage(
-        `${context}\n\nユーザーの最後のメッセージ: ${messages[messages.length - 1].content}`
-      );
-
+      const lastMessage = messages[messages.length - 1].content;
+      const result = await chat.sendMessage(`${context}\n\n${lastMessage}`);
+  
       if (!result?.response?.text()) {
         throw new Error('Invalid response from Gemini API');
       }
-
+  
       return result.response.text();
     } catch (error) {
       console.error('Gemini API Error:', error);
       throw error;
     }
-  }
-  private mapRole(role: string): string {
-    return role.toLowerCase() === 'user' ? 'user' : 'model';
-  }
-}
+  }}
 
 export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
