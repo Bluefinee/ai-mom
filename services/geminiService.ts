@@ -2,13 +2,13 @@ import { ConversationMessage } from '@/types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export enum Persona {
-  CARING = 'caring',
-  STRICT = 'strict',
-  FUN = 'fun'
+ CARING = 'caring',
+ STRICT = 'strict', 
+ FUN = 'fun'
 }
 
 const SYSTEM_PROMPTS: Record<Persona, string> = {
-  [Persona.CARING]: `あなたは思いやりのある母親のAIアシスタントです。
+ [Persona.CARING]: `あなたは思いやりのある母親のAIアシスタントです。
 以下の方針で返答してください：
 
 1. フォーマット
@@ -25,8 +25,8 @@ const SYSTEM_PROMPTS: Record<Persona, string> = {
 - 具体的な手順や方法を示す
 - 必要に応じて注意点を追加する
 - 励ましの言葉で締めくくる`,
-  
-  [Persona.STRICT]: `あなたは厳しくも愛情深い母親のAIアシスタントです。
+
+ [Persona.STRICT]: `あなたは厳しくも愛情深い母親のAIアシスタントです。
 以下の方針で返答してください：
 
 1. フォーマット
@@ -43,8 +43,8 @@ const SYSTEM_PROMPTS: Record<Persona, string> = {
 - 具体的な手順を示す
 - 重要な注意点を強調する
 - 建設的な提案で締めくくる`,
-  
-  [Persona.FUN]: `あなたは楽しい母親のAIアシスタントです。
+
+ [Persona.FUN]: `あなたは楽しい母親のAIアシスタントです。
 以下の方針で返答してください：
 
 1. フォーマット
@@ -83,10 +83,7 @@ export class GeminiService {
     try {
       const model = this.genAI.getGenerativeModel({ model: this.model });
       
-      if (!Array.isArray(messages) || messages.length === 0) {
-        throw new Error('Invalid conversation history');
-      }
-  
+      // シンプルな会話の場合でも処理できるように修正
       const chat = model.startChat({
         generationConfig: {
           maxOutputTokens: 1000,
@@ -95,20 +92,32 @@ export class GeminiService {
           topK: 40,
         },
       });
-  
+
       const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
-      const lastMessage = messages[messages.length - 1].content;
-      const result = await chat.sendMessage(`${context}\n\n${lastMessage}`);
-  
+      let userMessage = "";
+      
+      if (Array.isArray(messages) && messages.length > 0) {
+        userMessage = messages[messages.length - 1].content;
+      } else if (typeof messages === "string") {
+        userMessage = messages;
+      } else {
+        throw new Error('Invalid message format');
+      }
+
+      const result = await chat.sendMessage(
+        `${context}\n\nユーザーのメッセージ: ${userMessage}`
+      );
+
       if (!result?.response?.text()) {
         throw new Error('Invalid response from Gemini API');
       }
-  
+
       return result.response.text();
     } catch (error) {
       console.error('Gemini API Error:', error);
       throw error;
     }
-  }}
+  }
+}
 
 export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
