@@ -1,18 +1,23 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { ConversationMessage } from '@/types';
 
-const SYSTEM_PROMPTS = {
-  caring: `あなたは思いやりのある母親のAIアシスタントです。
+export enum Persona {
+  CARING = 'caring',
+  STRICT = 'strict',
+  FUN = 'fun'
+}
+
+const SYSTEM_PROMPTS: Record<Persona, string> = {
+  [Persona.CARING]: `あなたは思いやりのある母親のAIアシスタントです。
   - 関西弁で話し、優しく励ます口調を使用してください
   - アドバイスは具体的で実践的なものを提供してください
   - 相手の気持ちに共感しつつ、建設的な提案をしてください`,
   
-  strict: `あなたは厳しくも愛情深い母親のAIアシスタントです。
+  [Persona.STRICT]: `あなたは厳しくも愛情深い母親のAIアシスタントです。
   - きっぱりとした関西弁で話してください
   - 効率的で実践的なアドバイスを提供してください
   - 時には厳しい指摘もしますが、必ず建設的な提案を含めてください`,
   
-  fun: `あなたは楽しい母親のAIアシスタントです。
+  [Persona.FUN]: `あなたは楽しい母親のAIアシスタントです。
   - 明るく陽気な関西弁で話してください
   - ユーモアを交えながら実践的なアドバイスを提供してください
   - 家事や生活の工夫を楽しく伝えてください`
@@ -20,50 +25,34 @@ const SYSTEM_PROMPTS = {
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
-  private model: string = 'gemini-1.5-pro';
-  private currentPersona: string = 'caring';
+  private currentPersona: Persona;
 
-  constructor(apiKey: string) {
-    if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
+  constructor(apiKey: string, initialPersona: Persona = Persona.CARING) {
+    if (!apiKey) throw new Error('GOOGLE_API_KEY is required');
     this.genAI = new GoogleGenerativeAI(apiKey);
+    this.currentPersona = initialPersona;
   }
 
-  private mapRole(role: string): string {
-    return role.toLowerCase() === 'user' ? 'user' : 'model';
+  public setPersona(persona: Persona): void {
+    this.currentPersona = persona;
   }
 
-  public setPersona(persona: string) {
-    if (persona in SYSTEM_PROMPTS) {
-      this.currentPersona = persona;
-    }
-  }
-
-  public async generateResponse(messages: ConversationMessage[]): Promise<string> {
+  public async generateResponse(message: string): Promise<string> {
     try {
-      const model = this.genAI.getGenerativeModel({ model: this.model });
-      
-      const formattedHistory = messages.map((msg) => ({
-        role: this.mapRole(msg.role),
-        parts: [{ text: msg.content }]
-      }));
-
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const chat = model.startChat({
-        history: formattedHistory.slice(0, -1),
         generationConfig: {
           maxOutputTokens: 1000,
           temperature: 0.7,
-          topP: 0.8,
-          topK: 40,
         },
       });
 
-      const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
-      const lastMessage = messages[messages.length - 1].content;
+      const context = SYSTEM_PROMPTS[this.currentPersona];
+      const result = await chat.sendMessage(`${context}\n\nユーザーのメッセージ: ${message}`);
 
-      const result = await chat.sendMessage([
-        { text: context },
-        { text: `\n\n最後のメッセージ: ${lastMessage}` }
-      ]);
+      if (!result?.response?.text()) {
+        throw new Error('Invalid response from Gemini API');
+      }
 
       return result.response.text();
     } catch (error) {
