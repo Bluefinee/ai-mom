@@ -11,9 +11,11 @@ const SYSTEM_PROMPTS: Record<Persona, string> = {
 以下の方針で返答してください：
 
 1. フォーマット
+- 最大300文字程度
 - 読みやすい段落分けを行う
 - 重要なポイントは箇条書きで示す
 - 適度な空行を入れる
+- Markdown形式で返答する（**太字**、改行など）
 
 2. 話し方
 - 関西弁で優しく話す
@@ -103,7 +105,11 @@ interface Message {
         `${context}\n\nユーザーのメッセージ: ${userMessage}`
       );
  
-      return result.response.text() || '';
+      const text = result.response.text() || '';
+  
+      return text
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     } catch (error) {
       console.error('Gemini API Error:', error);
       throw error;
