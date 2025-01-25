@@ -96,6 +96,7 @@ interface Message {
       });
  
       const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
+      // 最新のメッセージのみを使用
       const userMessage = messages[messages.length - 1].content;
  
       const result = await chat.sendMessage(
@@ -108,5 +109,4 @@ interface Message {
       throw error;
     }
   }
- }
-export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
+ }export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
