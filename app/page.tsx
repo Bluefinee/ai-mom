@@ -50,9 +50,8 @@ export default function Chat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: messages.slice(-10),
-          persona: selectedPersona,
-          content,
+          messages: [{ role: "user", content }],
+          persona: selectedPersona
         }),
       })
 
