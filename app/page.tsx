@@ -6,28 +6,41 @@ import { ChatInterface } from "./components/ChatInterface"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
 
+interface Message {
+  role: "user" | "model"
+  content: string
+}
+
 export default function Chat() {
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [isTyping, setIsTyping] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
-    // Load previous session state if available
-    const savedPersona = localStorage.getItem("selectedPersona")
-    const savedMessages = localStorage.getItem("messages")
+    try {
+      const savedPersona = localStorage.getItem("selectedPersona")
+      const savedMessages = localStorage.getItem("messages")
 
-    if (savedPersona) setSelectedPersona(savedPersona)
-    if (savedMessages) setMessages(JSON.parse(savedMessages))
+      if (savedPersona) setSelectedPersona(savedPersona)
+      if (savedMessages) setMessages(JSON.parse(savedMessages))
+    } catch (err) {
+      console.error("Failed to load session state:", err)
+    }
   }, [])
 
   useEffect(() => {
-    // Save session state
-    if (selectedPersona) localStorage.setItem("selectedPersona", selectedPersona)
-    localStorage.setItem("messages", JSON.stringify(messages))
+    try {
+      if (selectedPersona) localStorage.setItem("selectedPersona", selectedPersona)
+      localStorage.setItem("messages", JSON.stringify(messages))
+    } catch (err) {
+      console.error("Failed to save session state:", err)
+    }
   }, [selectedPersona, messages])
 
   const handleSendMessage = async (content: string) => {
+    setError(null)
     const newMessage: Message = { role: "user", content }
     setMessages((prev) => [...prev, newMessage])
     setIsTyping(true)
@@ -43,15 +56,20 @@ export default function Chat() {
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to get response")
-
       const data = await response.json()
-      setMessages((prev) => [...prev, { role: "assistant", content: data.response }])
+
+      if (!response.ok) {
+        throw new Error(data.error || "応答の取得に失敗しました")
+      }
+
+      setMessages((prev) => [...prev, { role: "model", content: data.response }])
     } catch (error) {
-      console.error("Failed to get response", error)
+      const errorMessage = error instanceof Error ? error.message : "エラーが発生しました"
+      console.error("Failed to get response:", error)
+      setError(errorMessage)
       toast({
-        title: "Error",
-        description: "Failed to get response. Please try again.",
+        title: "エラー",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -61,29 +79,30 @@ export default function Chat() {
 
   const handlePersonaChange = (persona: string) => {
     setSelectedPersona(persona)
-    setMessages([]) // Clear messages when changing persona
+    setMessages([])
+    setError(null)
+  }
+
+  if (!selectedPersona) {
+    return (
+      <div className="min-h-screen bg-gradient-to-r from-pink-100 via-green-100 to-blue-100">
+        <PersonaSelection onSelect={handlePersonaChange} />
+        <Toaster />
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-100 via-green-100 to-blue-100">
-      {!selectedPersona ? (
-        <PersonaSelection onSelect={handlePersonaChange} />
-      ) : (
-        <ChatInterface
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          isTyping={isTyping}
-          selectedPersona={selectedPersona}
-          onPersonaChange={handlePersonaChange}
-        />
-      )}
+      <ChatInterface
+        messages={messages}
+        onSendMessage={handleSendMessage}
+        isTyping={isTyping}
+        error={error}
+        selectedPersona={selectedPersona}
+        onPersonaChange={handlePersonaChange}
+      />
       <Toaster />
     </div>
   )
 }
-
-interface Message {
-  role: "user" | "assistant"
-  content: string
-}
-
