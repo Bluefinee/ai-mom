@@ -20,7 +20,7 @@ const SYSTEM_PROMPTS = {
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
-  private model: string = 'gemini-1.5-flash';
+  private model: string = 'gemini-1.5-pro';
   private currentPersona: string = 'caring';
 
   constructor(apiKey: string) {
@@ -38,15 +38,8 @@ export class GeminiService {
     try {
       const model = this.genAI.getGenerativeModel({ model: this.model });
       
-      if (!Array.isArray(messages) || messages.length === 0) {
-        throw new Error('Invalid conversation history');
-      }
-
+      // シンプルな会話の場合でも処理できるように修正
       const chat = model.startChat({
-        history: messages.map(msg => ({
-          role: this.mapRole(msg.role),
-          parts: [{ text: msg.content }],
-        })),
         generationConfig: {
           maxOutputTokens: 1000,
           temperature: 0.7,
@@ -56,8 +49,18 @@ export class GeminiService {
       });
 
       const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
+      let userMessage = "";
+      
+      if (Array.isArray(messages) && messages.length > 0) {
+        userMessage = messages[messages.length - 1].content;
+      } else if (typeof messages === "string") {
+        userMessage = messages;
+      } else {
+        throw new Error('Invalid message format');
+      }
+
       const result = await chat.sendMessage(
-        `${context}\n\nユーザーの最後のメッセージ: ${messages[messages.length - 1].content}`
+        `${context}\n\nユーザーのメッセージ: ${userMessage}`
       );
 
       if (!result?.response?.text()) {
@@ -70,9 +73,4 @@ export class GeminiService {
       throw error;
     }
   }
-  private mapRole(role: string): string {
-    return role.toLowerCase() === 'user' ? 'user' : 'model';
-  }
 }
-
-export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
