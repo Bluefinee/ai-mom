@@ -19,14 +19,10 @@ export class GeminiService {
         if (!Array.isArray(conversation) || conversation.length === 0) {
           throw new Error('Invalid conversation history');
         }
-  
-        const messages = conversation.map(msg => ({
-          role: this.mapRole(msg.role),
-          parts: [{ text: msg.content || '' }],
-        }));
-  
+
+        // History functionality commented out
         const chat = model.startChat({
-          history: messages,
+          // history: messages,
           generationConfig: {
             maxOutputTokens: 1000,
             temperature: 0.7,
@@ -61,11 +57,11 @@ export class GeminiService {
           return 'user';
       }
     }
-  }
+}
   
-  const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
-  if (!GOOGLE_API_KEY) {
-    console.error('GOOGLE_API_KEY is not defined in environment variables');
-  }
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+if (!GOOGLE_API_KEY) {
+  console.error('GOOGLE_API_KEY is not defined in environment variables');
+}
   
-  export const geminiService = new GeminiService(GOOGLE_API_KEY || '');
+export const geminiService = new GeminiService(GOOGLE_API_KEY || '');
