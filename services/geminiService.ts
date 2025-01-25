@@ -1,3 +1,4 @@
+import { ConversationMessage } from '@/types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export enum Persona {
@@ -64,30 +65,45 @@ const SYSTEM_PROMPTS: Record<Persona, string> = {
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
-  private currentPersona: Persona;
+  private model: string = 'gemini-1.5-flash';
+  private currentPersona: string = 'caring';
 
-  constructor(apiKey: string, initialPersona: Persona = Persona.CARING) {
-    if (!apiKey) throw new Error('GOOGLE_API_KEY is required');
+  constructor(apiKey: string) {
+    if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.currentPersona = initialPersona;
   }
 
-  public setPersona(persona: Persona): void {
-    this.currentPersona = persona;
+  public setPersona(persona: string) {
+    if (persona in SYSTEM_PROMPTS) {
+      this.currentPersona = persona;
+    }
   }
 
-  public async generateResponse(message: string): Promise<string> {
+  public async generateResponse(messages: ConversationMessage[]): Promise<string> {
     try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = this.genAI.getGenerativeModel({ model: this.model });
+      
+      if (!Array.isArray(messages) || messages.length === 0) {
+        throw new Error('Invalid conversation history');
+      }
+
       const chat = model.startChat({
+        // history: messages.map(msg => ({
+        //   role: this.mapRole(msg.role),
+        //   parts: [{ text: msg.content }],
+        // })),
         generationConfig: {
           maxOutputTokens: 1000,
           temperature: 0.7,
+          topP: 0.8,
+          topK: 40,
         },
       });
 
-      const context = SYSTEM_PROMPTS[this.currentPersona];
-      const result = await chat.sendMessage(`${context}\n\nユーザーのメッセージ: ${message}`);
+      const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
+      const result = await chat.sendMessage(
+        `${context}\n\nユーザーの最後のメッセージ: ${messages[messages.length - 1].content}`
+      );
 
       if (!result?.response?.text()) {
         throw new Error('Invalid response from Gemini API');
@@ -98,6 +114,9 @@ export class GeminiService {
       console.error('Gemini API Error:', error);
       throw error;
     }
+  }
+  private mapRole(role: string): string {
+    return role.toLowerCase() === 'user' ? 'user' : 'model';
   }
 }
 
