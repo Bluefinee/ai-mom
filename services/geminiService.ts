@@ -1,4 +1,3 @@
-import { ConversationMessage } from '@/types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export enum Persona {
@@ -63,27 +62,30 @@ const SYSTEM_PROMPTS: Record<Persona, string> = {
 - 楽しい励ましで締めくくる`
 };
 
-export class GeminiService {
+interface Message {
+  content: string;
+  role?: string;
+ }
+ 
+ export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private model: string = 'gemini-1.5-flash';
   private currentPersona: string = 'caring';
-
+ 
   constructor(apiKey: string) {
     if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
-
+ 
   public setPersona(persona: string) {
     if (persona in SYSTEM_PROMPTS) {
       this.currentPersona = persona;
     }
   }
-
-  public async generateResponse(messages: ConversationMessage[]): Promise<string> {
+ 
+  public async generateResponse(messages: Message[]): Promise<string> {
     try {
       const model = this.genAI.getGenerativeModel({ model: this.model });
-      
-      // シンプルな会話の場合でも処理できるように修正
       const chat = model.startChat({
         generationConfig: {
           maxOutputTokens: 1000,
@@ -92,32 +94,19 @@ export class GeminiService {
           topK: 40,
         },
       });
-
+ 
       const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
-      let userMessage = "";
-      
-      if (Array.isArray(messages) && messages.length > 0) {
-        userMessage = messages[messages.length - 1].content;
-      } else if (typeof messages === "string") {
-        userMessage = messages;
-      } else {
-        throw new Error('Invalid message format');
-      }
-
+      const userMessage = messages[messages.length - 1].content;
+ 
       const result = await chat.sendMessage(
         `${context}\n\nユーザーのメッセージ: ${userMessage}`
       );
-
-      if (!result?.response?.text()) {
-        throw new Error('Invalid response from Gemini API');
-      }
-
-      return result.response.text();
+ 
+      return result.response.text() || '';
     } catch (error) {
       console.error('Gemini API Error:', error);
       throw error;
     }
   }
-}
-
+ }
 export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
