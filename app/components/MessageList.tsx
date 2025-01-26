@@ -1,11 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageBubble } from "./MessageBubble";
-
-interface Message {
-  role: 'user' | 'model';
-  content: string;
-  timestamp: number;
-}
+import { Message } from "@/types";
 
 interface MessageListProps {
   messages: Message[];

@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Add timestamps to messages if not present
     const messagesWithTimestamp = body.messages.map((msg: Message) => ({
       ...msg,
       timestamp: msg.timestamp || Date.now()
@@ -36,12 +35,13 @@ export async function POST(req: NextRequest) {
 
     const responsePromise = geminiService.generateResponse(messagesWithTimestamp);
     const response = await Promise.race([responsePromise, timeoutPromise]);
-    const conversationSummary = geminiService.getConversationSummary();
+    
+    const context = geminiService.getContext();
     const history = geminiService.getHistory();
 
     return NextResponse.json({
       response,
-      summary: conversationSummary,
+      context,
       history,
       timestamp: Date.now()
     });

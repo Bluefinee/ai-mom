@@ -15,12 +15,7 @@ import { WelcomeMessage } from "./WelcomeMessage"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { SessionManager } from "@/services/sessiontService"
 import { LoadingIndicator } from "./LoadingIndicator"
-
-interface Message {
-  role: 'user' | 'model';
-  content: string;
-  timestamp: number;
-}
+import { Message } from "@/types"
 
 interface ConversationSummary {
   keywords: string[];

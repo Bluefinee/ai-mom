@@ -5,11 +5,7 @@ import { PersonaSelection } from "./components/PersonaSelection"
 import { ChatInterface } from "./components/ChatInterface"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
-
-interface Message {
-  role: "user" | "model"
-  content: string
-}
+import { Message } from "@/types"
 
 export default function Chat() {
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null)
@@ -41,7 +37,7 @@ export default function Chat() {
 
   const handleSendMessage = async (content: string) => {
     setError(null)
-    const newMessage: Message = { role: "user", content }
+    const newMessage: Message = { role: "user", content, timestamp: Date.now() }
     setMessages((prev) => [...prev, newMessage])
     setIsTyping(true)
 
@@ -61,7 +57,7 @@ export default function Chat() {
         throw new Error(data.error || "応答の取得に失敗しました")
       }
 
-      setMessages((prev) => [...prev, { role: "model", content: data.response }])
+      setMessages((prev) => [...prev, { role: "model", content: data.response, timestamp: Date.now() }])
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "エラーが発生しました"
       console.error("Failed to get response:", error)

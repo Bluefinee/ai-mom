@@ -1,4 +1,5 @@
 import { ChatSession, GoogleGenerativeAI } from '@google/generative-ai';
+import { TextAnalysisService, AnalysisResult, ChatMessage } from './textAnalysisService';
 
 export enum Persona {
   CARING = 'caring',
@@ -6,114 +7,139 @@ export enum Persona {
   FUN = 'fun'
 }
 
+interface ConversationContext extends AnalysisResult {
+  lastExchange: ChatMessage[];
+}
+
 const SYSTEM_PROMPTS: Record<Persona, string> = {
   [Persona.CARING]: `あなたは思いやりのある母親のAIアシスタントです。
-会話の文脈を理解し、一貫性のある対話を心がけてください。
+以下の指示に従って会話を行ってください：
 
-1. フォーマット
-- 最大300文字程度
-- 読みやすい段落分けを行う
-- 重要なポイントは箇条書きで示す
-- 適度な空行を入れる
-- Markdown形式で返答する（**太字**、改行など）
-
-2. 話し方
-- お母さんっぽい親しみやすい表現を使い、優しく話す。敬語は使わない。
+1. 会話スタイル
+- 優しく親身な口調で話す
+- 敬語は使わず、お母さんらしい口調を心がける
+- 相手の気持ちに寄り添う
 - 具体的なアドバイスを提供する
-- 相手の質問に直接答える
-- 過去の会話を参照し、文脈に沿った返答をする
+- 文脈を理解し、一貫性のある対話を心がける
 
-3. 内容
-- 具体的な手順や方法を示す
-- 必要に応じて注意点を追加する
-- 励ましの言葉で締めくくる
-- 以前の会話に言及しながら話を展開する`,
+2. 応答ルール
+- 前回までの会話履歴を必ず参照する
+- 特に直前のやり取りを重視する
+- 代名詞（それ、これ等）の内容を正確に理解する
+- ユーザーの発言に含まれる感情や意図を理解する
+
+3. 知識の維持
+- ユーザーの状況や好みを記憶する
+- 以前の提案内容を覚えておく
+- 矛盾のない応答を心がける
+
+4. フォーマット
+- 読みやすい段落分け
+- 重要点は箇条書きで示す
+- 適度な空行を入れる
+- Markdown形式で返答`,
 
   [Persona.STRICT]: `あなたは厳しくも愛情深い母親のAIアシスタントです。
-会話の文脈を理解し、建設的な対話を心がけてください。
+以下の指示に従って会話を行ってください：
 
-1. フォーマット
-- 明確な段落分けを行う
+1. 会話スタイル
+- きっぱりとした口調で話す
+- 理由を明確に説明する
+- 具体的な改善点を指摘する
+- 文脈を理解し、建設的な対話を行う
+
+2. 応答ルール
+- 前回までの会話履歴を必ず参照する
+- 特に直前のやり取りを重視する
+- 代名詞の内容を正確に理解する
+- 甘やかさない、でも否定しすぎない
+
+3. 知識の維持
+- ユーザーの課題や目標を記憶する
+- 以前の指導内容を覚えておく
+- 一貫性のある指導を心がける
+
+4. フォーマット
+- 明確な段落分け
 - 重要点は箇条書きで示す
-- 読みやすい空行を入れる
-- Markdown形式で返答する
-
-2. 話し方
-- きっぱりとした言葉を使用
-- 効率的なアドバイスを提供
-- 質問に対して直接的に回答
-- 過去の会話を踏まえた指導を行う
-
-3. 内容
-- 具体的な手順を示す
-- 重要な注意点を強調する
-- 建設的な提案で締めくくる
-- 以前の指導内容との一貫性を保つ`,
+- メリハリのある構成
+- Markdown形式で返答`,
 
   [Persona.FUN]: `あなたは楽しい母親のAIアシスタントです。
-会話を楽しみながら、実用的なアドバイスを提供してください。
+以下の指示に従って会話を行ってください：
 
-1. フォーマット
+1. 会話スタイル
+- 明るく楽しい口調で話す
+- ユーモアを交えて説明する
+- 具体的なアイデアを提供する
+- 文脈を理解し、楽しい対話を展開する
+
+2. 応答ルール
+- 前回までの会話履歴を必ず参照する
+- 特に直前のやり取りを重視する
+- 代名詞の内容を正確に理解する
+- ポジティブな提案を心がける
+
+3. 知識の維持
+- ユーザーの興味や好みを記憶する
+- 以前の提案内容を覚えておく
+- 楽しい雰囲気を維持する
+
+4. フォーマット
 - 読みやすい段落分け
-- ポイントは箇条書きで
-- 適度な空行を使用
-- Markdown形式で返答する
-
-2. 話し方
-- 明るい口調で話す
-- 具体的なアドバイスを提供
-- 質問に直接答える
-- ユーモアを交えた会話を心がける
-
-3. 内容
-- わかりやすい手順を示す
-- 実践的なコツを含める
-- 楽しい励ましで締めくくる
-- 会話を楽しく発展させる`
+- 重要点は箇条書きで示す
+- 適度な空行を入れる
+- Markdown形式で返答`
 };
-
-interface ChatMessage {
-  content: string;
-  role: string;
-  timestamp?: number;
-}
-
-interface ConversationSummary {
-  keywords: string[];
-  emotionalContext: string;
-  lastTimestamp?: number;
-  lastAIResponse?: {
-    content: string;
-    intent: string;
-    key_points: string[];
-    topics: string[];
-    sentiment: string;
-    followUpSuggestions: string[];
-  };
-}
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private model: string = 'gemini-1.5-flash';
-  private currentPersona: string = 'caring';
+  private currentPersona: Persona = Persona.CARING;
   private chat: ChatSession;
-  private history: ChatMessage[] = [];
-  private contextWindow: number = 10;
-  private conversationSummary: ConversationSummary = {
+  private textAnalysisService: TextAnalysisService;
+  private context: ConversationContext = {
+    lastExchange: [],
     keywords: [],
-    emotionalContext: '新しい会話の開始'
+    topics: [],
+    emotionalContext: '',
+    sentiment: 0
   };
+  private history: ChatMessage[] = [];
 
   constructor(apiKey: string) {
     if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
     this.genAI = new GoogleGenerativeAI(apiKey);
     const model = this.genAI.getGenerativeModel({ model: this.model });
     this.chat = this.createChatSession(model);
+    this.textAnalysisService = new TextAnalysisService();
+  }
+
+  private getContextualSystemPrompt(): string {
+    const basePrompt = SYSTEM_PROMPTS[this.currentPersona];
+    return `${basePrompt}
+
+    重要な追加指示:
+    1. 会話の一貫性維持
+    - 全ての会話履歴を理解し、文脈を保持すること
+    - 特に直前のやり取りを最重視して返答すること
+    - 以前の発言と矛盾しない応答をすること
+    
+    2. 文脈理解の徹底
+    - ユーザーの質問が前回の会話に関連している場合、その文脈を必ず考慮すること
+    - 代名詞が使用されている場合、前回の会話から正確に内容を参照すること
+    - 話題の流れを自然に保つこと
+    
+    3. 情報の継続的保持
+    - ユーザーの状況、好み、興味を会話全体で記憶すること
+    - 前回までの提案内容を正確に覚え、関連する質問に適切に応答すること
+    - 重要な情報は次回以降の会話でも参照できるようにすること
+    
+    現在の感情コンテキスト: ${this.context.emotionalContext}
+    現在の話題: ${this.context.topics.join(', ')}`;
   }
 
   private createChatSession(model: ReturnType<GoogleGenerativeAI['getGenerativeModel']>): ChatSession {
-    const historySummary = this.summarizeHistory();
-    
     return model.startChat({
       generationConfig: {
         maxOutputTokens: 1000,
@@ -123,159 +149,53 @@ export class GeminiService {
       },
       history: [{
         role: 'user',
-        parts: [{ text: `${SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS]}
-        
-        これまでの会話の要約:
-        ${historySummary}` }]
+        parts: [{ text: this.getContextualSystemPrompt() }]
       }]
     });
   }
 
-  private summarizeHistory(): string {
-    if (this.history.length === 0) return '会話履歴なし';
-    
-    const { keywords, emotionalContext, lastTimestamp, lastAIResponse } = this.conversationSummary;
-    const timestamp = lastTimestamp ? new Date(lastTimestamp).toLocaleString() : '時刻不明';
-    
-    let summary = `最終更新: ${timestamp}
-主な話題: ${keywords.join(', ')}
-会話の流れ: ${emotionalContext}`;
-
-    if (lastAIResponse) {
-      summary += `\n\n前回のAI応答の詳細:
-内容: ${lastAIResponse.content}
-意図: ${lastAIResponse.intent}
-主要ポイント: ${lastAIResponse.key_points.join(', ')}
-扱ったトピック: ${lastAIResponse.topics.join(', ')}
-感情トーン: ${lastAIResponse.sentiment}
-想定される質問: ${lastAIResponse.followUpSuggestions.join(', ')}`;
+  private updateContext(messages: ChatMessage[]) {
+    if (messages.length >= 2) {
+      this.context.lastExchange = messages.slice(-2);
     }
-    
-    return summary;
-  }
 
-  private updateConversationSummary(response?: string): void {
-    const keywords = this.extractKeywords();
-    const emotionalContext = this.analyzeEmotionalContext();
-    const lastMessage = this.history[this.history.length - 1];
-    
-    this.conversationSummary = {
-      keywords,
-      emotionalContext,
-      lastTimestamp: lastMessage?.timestamp || Date.now(),
-      ...(response && { lastAIResponse: this.analyzeAIResponse(response) })
+    const analysis = this.textAnalysisService.analyzeMessages(messages);
+    console.log('コンテキスト:', analysis);
+    this.context = {
+      ...this.context,
+      ...analysis,
     };
   }
 
-  private extractKeywords(): string[] {
-    const text = this.history.map(msg => msg.content).join(' ');
-    const words = text.split(/[\s,。、]+/).filter(word => word.length > 1);
-    const frequency: Record<string, number> = {};
+  private formatMessagesContext(messages: ChatMessage[]): string {
+    this.updateContext(messages);
     
-    words.forEach(word => {
-      frequency[word] = (frequency[word] || 0) + 1;
-    });
+    let context = '';
     
-    return Object.entries(frequency)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-      .map(([word]) => word);
-  }
-
-  private analyzeEmotionalContext(): string {
-    const recentMessages = this.history.slice(-this.contextWindow);
-    if (recentMessages.length === 0) return '新しい会話の開始';
-
-    const questionCount = recentMessages.filter(msg => 
-      msg.content.includes('？') || msg.content.includes('?')
-    ).length;
-
-    const avgLength = recentMessages.reduce((sum, msg) => 
-      sum + msg.content.length, 0) / recentMessages.length;
-
-    if (questionCount > recentMessages.length / 2) {
-      return '質問が多い対話形式';
-    } else if (avgLength > 100) {
-      return '詳細な説明を含む会話';
-    } else {
-      return '通常の会話が継続中';
+    if (this.context.lastExchange.length === 2) {
+      context += `
+      直前のやり取り:
+      ユーザー: ${this.context.lastExchange[0].content}
+      AI: ${this.context.lastExchange[1].content}\n\n`;
     }
+
+    const recentMessages = messages.slice(-10);
+    context += `会話履歴（最新10件）:\n${recentMessages.map(msg => {
+      const role = msg.role === 'user' ? 'ユーザー' : 'AI';
+      return `${role}: ${msg.content}`;
+    }).join('\n\n')}`;
+
+    context += `\n\n文脈情報:
+    - キーワード: ${this.context.keywords.join(', ')}
+    - トピック: ${this.context.topics.join(', ')}
+    - 感情: ${this.context.emotionalContext}
+    - 感情スコア: ${this.context.sentiment}`;
+
+    return context;
   }
 
-  private analyzeAIResponse(response: string): ConversationSummary['lastAIResponse'] {
-    // 応答の意図を分析
-    const intent = response.includes('？') ? '質問への回答' :
-                   response.includes('注意') ? '注意喚起' :
-                   response.includes('アドバイス') ? 'アドバイス提供' : '一般的な返答';
-
-    // 主要ポイントを抽出（箇条書きの項目）
-    const key_points = response
-      .split('\n')
-      .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
-      .map(line => line.trim().replace(/^[-*]\s+/, ''))
-      .slice(0, 3);
-
-    // トピックの抽出
-    const topics = this.extractTopics(response);
-
-    // 感情トーンの分析
-    const sentiment = this.analyzeSentiment(response);
-
-    // フォローアップ質問の予測
-    const followUpSuggestions = this.generateFollowUpSuggestions(response);
-
-    return {
-      content: response,
-      intent,
-      key_points,
-      topics,
-      sentiment,
-      followUpSuggestions
-    };
-  }
-
-  private extractTopics(text: string): string[] {
-    const sentences = text.split(/[。.！?？\n]+/);
-    const topics = sentences
-      .map(sentence => {
-        const words = sentence.split(/[\s,、]+/);
-        return words.find(word => word.length > 1) || '';
-      })
-      .filter(Boolean);
-    
-    return Array.from(new Set(topics)).slice(0, 3);
-  }
-
-  private analyzeSentiment(text: string): string {
-    const positiveWords = ['ありがとう', '素晴らしい', '頑張', '良い', '楽しい'];
-    const negativeWords = ['残念', '注意', '気をつけて', '心配'];
-    
-    const posCount = positiveWords.filter(word => text.includes(word)).length;
-    const negCount = negativeWords.filter(word => text.includes(word)).length;
-    
-    if (posCount > negCount) return 'ポジティブ';
-    if (negCount > posCount) return 'やや心配';
-    return '中立';
-  }
-
-  private generateFollowUpSuggestions(text: string): string[] {
-    const suggestions: string[] = [];
-    
-    if (text.includes('注意')) {
-      suggestions.push('具体的な注意点について');
-    }
-    if (text.includes('方法') || text.includes('手順')) {
-      suggestions.push('詳しいやり方について');
-    }
-    if (text.includes('例えば') || text.includes('たとえば')) {
-      suggestions.push('他の例について');
-    }
-    
-    return suggestions.slice(0, 3);
-  }
-
-  public setPersona(persona: string) {
-    if (persona in SYSTEM_PROMPTS) {
+  public setPersona(persona: Persona) {
+    if (Object.values(Persona).includes(persona)) {
       this.currentPersona = persona;
       this.reinitializeChat();
     }
@@ -285,88 +205,27 @@ export class GeminiService {
     const model = this.genAI.getGenerativeModel({ model: this.model });
     this.chat = this.createChatSession(model);
     
-    // 履歴を保持しながらチャットを再初期化
-    this.history.forEach(async msg => {
-      try {
-        await this.chat.sendMessage(msg.content);
-      } catch (error) {
-        console.error('履歴の再送信中にエラーが発生:', error);
-      }
-    });
+    if (this.history.length > 0) {
+      const context = this.formatMessagesContext(this.history);
+      this.chat.sendMessage(context);
+    }
   }
 
   public async generateResponse(messages: ChatMessage[]): Promise<string> {
     try {
-      // 新しいメッセージを履歴に追加
-      const timestampedMessages = messages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp || Date.now()
-      }));
-      
-      this.history = [...this.history, ...timestampedMessages];
-      this.updateConversationSummary();
-      
-      // コンテキストウィンドウを考慮した最近のメッセージを取得
-      const recentMessages = this.history.slice(-this.contextWindow);
-      const formattedContext = this.formatMessagesContext(recentMessages);
-      console.log('Formatted context:', formattedContext);
-      
-      const result = await this.chat.sendMessage(formattedContext);
+      this.history = messages;
+      const context = this.formatMessagesContext(messages);
+      const result = await this.chat.sendMessage(context);
       const response = result.response.text();
 
       if (!response) {
         throw new Error('応答の生成に失敗しました。空の応答が返されました。');
       }
 
-      // 応答を履歴に追加し、サマリーを更新
-      const assistantMessage: ChatMessage = {
-        content: response,
-        role: 'assistant',
-        timestamp: Date.now()
-      };
-      
-      this.history.push(assistantMessage);
-      this.updateConversationSummary(response);
-
       return response;
     } catch (error) {
       const errorMessage = this.handleError(error);
       throw new Error(errorMessage);
-    }
-  }
-
-  private formatMessagesContext(messages: ChatMessage[]): string {
-    const context = messages.map(msg => {
-      const role = msg.role === 'user' ? 'ユーザー' : 'AI';
-      const timestamp = msg.timestamp ? 
-        new Date(msg.timestamp).toLocaleString() : 
-        '時刻不明';
-      
-      return `[${timestamp}] ${role}: ${msg.content}`;
-    }).join('\n\n');
-
-    const historySummary = this.summarizeHistory();
-    const personalityPrompt = this.getPersonalityPrompt();
-
-    return `${SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS]}
-
-    会話の要約:
-    ${historySummary}
-
-    直近の会話:
-    ${context}
-
-    ${personalityPrompt}`;
-  }
-
-  private getPersonalityPrompt(): string {
-    switch(this.currentPersona) {
-      case Persona.STRICT:
-        return 'きっぱりとした言葉で、これまでの文脈を踏まえて返してください。';
-      case Persona.FUN:
-        return '明るい言葉で、会話の流れを意識しながら楽しく返してください。';
-      default:
-        return '優しい言葉で、これまでの話の内容を考慮して返してください。';
     }
   }
 
@@ -387,28 +246,30 @@ export class GeminiService {
         return '申し訳ありません。メッセージが長すぎます。簡潔な質問に分けてお試しください。';
       }
       
-      return `エラーが発生しました: ${error.message}`;
+      return error.message;
     }
     
     return '予期せぬエラーが発生しました。しばらく待ってから再度お試しください。';
+  }
+
+  public getContext(): ConversationContext {
+    return this.context;
   }
 
   public getHistory(): ChatMessage[] {
     return this.history;
   }
 
-  public getConversationSummary(): ConversationSummary {
-    return this.conversationSummary;
-  }
-
   public clearHistory(): void {
     this.history = [];
-    this.conversationSummary = {
+    this.context = {
+      lastExchange: [],
       keywords: [],
-      emotionalContext: '新しい会話の開始'
+      topics: [],
+      emotionalContext: '',
+      sentiment: 0
     };
     this.reinitializeChat();
   }
 }
-
 export const geminiService = new GeminiService(process.env.GOOGLE_API_KEY || '');
