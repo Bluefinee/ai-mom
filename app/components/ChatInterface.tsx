@@ -19,7 +19,13 @@ import { LoadingIndicator } from "./LoadingIndicator"
 interface Message {
   role: 'user' | 'model';
   content: string;
-  timestamp?: number;
+  timestamp: number;
+}
+
+interface ConversationSummary {
+  keywords: string[];
+  emotionalContext: string;
+  lastTimestamp?: number;
 }
 
 interface ChatInterfaceProps {
@@ -29,6 +35,7 @@ interface ChatInterfaceProps {
   error: string | null;
   selectedPersona: string;
   onPersonaChange: (persona: string) => void;
+  conversationSummary?: ConversationSummary;
 }
 
 const sessionManager = new SessionManager();
@@ -39,7 +46,8 @@ export function ChatInterface({
   isTyping, 
   error, 
   selectedPersona, 
-  onPersonaChange 
+  onPersonaChange,
+  conversationSummary 
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("")
   const [isFirstVisit, setIsFirstVisit] = useState(true)
@@ -104,20 +112,31 @@ export function ChatInterface({
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-            AI母ちゃん
-          </h1>
-          <Select value={selectedPersona} onValueChange={handlePersonaChange}>
-            <SelectTrigger className={isMobile ? "w-32" : "w-[180px]"}>
-              <SelectValue placeholder="ペルソナを選択" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="caring">思いやりのある母</SelectItem>
-              <SelectItem value="strict">厳しい母</SelectItem>
-              <SelectItem value="fun">楽しい母</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="max-w-4xl mx-auto flex flex-col">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+              AI母ちゃん
+            </h1>
+            <Select value={selectedPersona} onValueChange={handlePersonaChange}>
+              <SelectTrigger className={isMobile ? "w-32" : "w-[180px]"}>
+                <SelectValue placeholder="ペルソナを選択" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="caring">思いやりのある母</SelectItem>
+                <SelectItem value="strict">厳しい母</SelectItem>
+                <SelectItem value="fun">楽しい母</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {conversationSummary && (
+            <div className="text-sm text-gray-500 mt-2 flex flex-wrap gap-4">
+              <span>話題: {conversationSummary.keywords.join(', ')}</span>
+              <span>状態: {conversationSummary.emotionalContext}</span>
+              {conversationSummary.lastTimestamp && (
+                <span>最終更新: {new Date(conversationSummary.lastTimestamp).toLocaleString()}</span>
+              )}
+            </div>
+          )}
         </div>
       </motion.header>
 

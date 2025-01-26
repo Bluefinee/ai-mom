@@ -1,12 +1,10 @@
-// MessageList.tsx
-
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageBubble } from "./MessageBubble";
 
 interface Message {
   role: 'user' | 'model';
   content: string;
-  timestamp?: number;
+  timestamp: number;
 }
 
 interface MessageListProps {
@@ -14,16 +12,9 @@ interface MessageListProps {
   isMobile: boolean;
 }
 
-/**
- * メッセージリストコンポーネント
- * チャット内のメッセージを表示し、スムーズなアニメーションを提供します。
- * 各メッセージは順番に表示され、新しいメッセージが追加されると自動的にアニメーションします。
- */
 export function MessageList({ messages, isMobile }: MessageListProps) {
-  // メッセージが空の場合は何も表示しない
   if (messages.length === 0) return null;
 
-  // メッセージのアニメーション設定
   const messageVariants = {
     initial: { 
       opacity: 0, 
@@ -48,7 +39,6 @@ export function MessageList({ messages, isMobile }: MessageListProps) {
     }
   };
 
-  // メッセージをグループ化する（同じ送信者の連続したメッセージをまとめる）
   const groupMessages = (msgs: Message[]) => {
     return msgs.reduce((groups: Message[][], message) => {
       const lastGroup = groups[groups.length - 1];

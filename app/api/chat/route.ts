@@ -5,7 +5,8 @@ const TIMEOUT_MS = 15000;
 
 interface Message {
   content: string;
-  role?: string;
+  role: string;
+  timestamp: number;
 }
 
 export async function POST(req: NextRequest) {
@@ -19,6 +20,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Add timestamps to messages if not present
+    const messagesWithTimestamp = body.messages.map((msg: Message) => ({
+      ...msg,
+      timestamp: msg.timestamp || Date.now()
+    }));
+
     if (body.persona) {
       geminiService.setPersona(body.persona);
     }
@@ -27,10 +34,17 @@ export async function POST(req: NextRequest) {
       setTimeout(() => reject(new Error('Request timeout')), TIMEOUT_MS);
     });
 
-    const responsePromise = geminiService.generateResponse(body.messages);
+    const responsePromise = geminiService.generateResponse(messagesWithTimestamp);
     const response = await Promise.race([responsePromise, timeoutPromise]);
+    const conversationSummary = geminiService.getConversationSummary();
+    const history = geminiService.getHistory();
 
-    return NextResponse.json({ response });
+    return NextResponse.json({
+      response,
+      summary: conversationSummary,
+      history,
+      timestamp: Date.now()
+    });
   } catch (error) {
     console.error('API Error:', error);
 

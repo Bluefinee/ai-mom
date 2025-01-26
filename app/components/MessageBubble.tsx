@@ -6,7 +6,7 @@ interface MessageBubbleProps {
   message: {
     role: "user" | "model"
     content: string
-    timestamp?: number
+    timestamp: number
   }
   isMobile?: boolean
   isFirstInGroup?: boolean
@@ -21,6 +21,9 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const isUser = message.role === "user"
   const maxWidth = isMobile ? "w-3/4" : "max-w-2xl"
+  const timestamp = Number.isInteger(message.timestamp) 
+    ? new Date(message.timestamp).toLocaleString('ja-JP')
+    : new Date().toLocaleString('ja-JP')
 
   return (
     <div className={cn(
@@ -40,32 +43,42 @@ export function MessageBubble({
         </Avatar>
       )}
       
-      <div className={cn(
-        maxWidth,
-        "px-6 py-4 rounded-lg",
-        isUser ? "bg-pink-100" : "bg-blue-100",
-        isUser ? "text-right" : "text-left",
-        {
-          'rounded-t-lg rounded-b-md': !isLastInGroup,
-          'rounded-t-md rounded-b-lg': !isFirstInGroup && isLastInGroup,
-          'rounded-md': !isFirstInGroup && !isLastInGroup,
-        }
-      )}>
-        <ReactMarkdown
-          className="prose prose-sm max-w-none"
-          components={{
-            ul: ({children}) => <ul className="space-y-2 my-4">{children}</ul>,
-            li: ({children}) => (
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>{children}</span>
-              </li>
-            ),
-            p: ({children}) => <p className="mb-4 last:mb-0">{children}</p>
-          }}
-        >
-          {message.content}
-        </ReactMarkdown>
+      <div className="flex flex-col">
+        <div className={cn(
+          maxWidth,
+          "px-6 py-4 rounded-lg",
+          isUser ? "bg-pink-100" : "bg-blue-100",
+          isUser ? "text-right" : "text-left",
+          {
+            'rounded-t-lg rounded-b-md': !isLastInGroup,
+            'rounded-t-md rounded-b-lg': !isFirstInGroup && isLastInGroup,
+            'rounded-md': !isFirstInGroup && !isLastInGroup,
+          }
+        )}>
+          <ReactMarkdown
+            className="prose prose-sm max-w-none"
+            components={{
+              ul: ({children}) => <ul className="space-y-2 my-4">{children}</ul>,
+              li: ({children}) => (
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{children}</span>
+                </li>
+              ),
+              p: ({children}) => <p className="mb-4 last:mb-0">{children}</p>
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        </div>
+        {isLastInGroup && (
+          <span className={cn(
+            "text-xs text-gray-400 mt-1",
+            isUser ? "text-right" : "text-left"
+          )}>
+            {timestamp}
+          </span>
+        )}
       </div>
     </div>
   )
