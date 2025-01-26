@@ -1,0 +1,29 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 髪の毛 -->
+  <path d="M 200 100 Q 300 100 300 200 Q 300 300 200 300 Q 100 300 100 200 Q 100 100 200 100" 
+        fill="#333333" stroke="none"/>
+  
+  <!-- 顔 -->
+  <circle cx="200" cy="200" r="80" fill="#FFE5D9" stroke="#000" stroke-width="2"/>
+  
+  <!-- 目 -->
+  <path d="M 170 180 Q 175 175 180 180" stroke="#000" stroke-width="3" fill="none"/>
+  <path d="M 220 180 Q 225 175 230 180" stroke="#000" stroke-width="3" fill="none"/>
+  
+  <!-- 笑顔 -->
+  <path d="M 180 220 Q 200 240 220 220" stroke="#000" stroke-width="3" fill="none"/>
+  
+  <!-- エプロン -->
+  <path d="M 150 300 L 250 300 L 270 400 L 130 400 Z" fill="#FFB6C1" stroke="#000" stroke-width="2"/>
+  
+  <!-- エプロンの紐 -->
+  <path d="M 180 310 C 180 280 220 280 220 310" stroke="#000" stroke-width="2" fill="none"/>
+  
+  <!-- ほうきじわ -->
+  <path d="M 160 160 L 150 155" stroke="#333" stroke-width="1"/>
+  <path d="M 240 160 L 250 155" stroke="#333" stroke-width="1"/>
+  
+  <!-- 頬の赤み -->
+  <circle cx="160" cy="210" r="10" fill="#FFB6C1" opacity="0.5"/>
+  <circle cx="240" cy="210" r="10" fill="#FFB6C1" opacity="0.5"/>
+</svg>
