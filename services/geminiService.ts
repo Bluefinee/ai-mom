@@ -1,5 +1,3 @@
-// geminiService.ts
-
 import { ChatSession, GoogleGenerativeAI } from '@google/generative-ai';
 
 // ペルソナの種類を定義
@@ -22,8 +20,7 @@ const SYSTEM_PROMPTS: Record<Persona, string> = {
 - Markdown形式で返答する（**太字**、改行など）
 
 2. 話し方
-- お母さんなので基本的には敬語は使わない
-- お母さんっぽい親しみやすい表現を使い、優しく話す
+- お母さんっぽい親しみやすい表現を使い、優しく話す。敬語は使わない。
 - 具体的なアドバイスを提供する
 - 相手の質問に直接答える
 - 過去の会話を参照し、文脈に沿った返答をする
@@ -89,6 +86,7 @@ export class GeminiService {
   private model: string = 'gemini-1.5-flash';
   private currentPersona: string = 'caring';
   private chat: ChatSession;
+  private history: ChatMessage[] = [];
 
   constructor(apiKey: string) {
     if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
@@ -115,6 +113,10 @@ export class GeminiService {
   private reinitializeChat() {
     const model = this.genAI.getGenerativeModel({ model: this.model });
     this.chat = this.createChatSession(model);
+    // 履歴を保持
+    this.history.forEach(msg => {
+      this.chat.sendMessage(msg.content);
+    });
   }
 
   public setPersona(persona: string) {
@@ -126,6 +128,9 @@ export class GeminiService {
 
   public async generateResponse(messages: ChatMessage[]): Promise<string> {
     try {
+      // 履歴の更新
+      this.history = messages;
+      
       const recentMessages = messages.slice(-5);
       const formattedContext = this.formatMessagesContext(recentMessages);
       const result = await this.chat.sendMessage(formattedContext);
@@ -184,6 +189,17 @@ export class GeminiService {
     ${context}
 
     ${personalityPrompt}`;
+  }
+
+  // 履歴の取得メソッドを追加
+  public getHistory(): ChatMessage[] {
+    return this.history;
+  }
+
+  // 履歴のクリアメソッドを追加
+  public clearHistory(): void {
+    this.history = [];
+    this.reinitializeChat();
   }
 }
 
