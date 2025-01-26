@@ -37,7 +37,7 @@ export function MessageBubble({
           isUser ? "bg-pink-500" : "bg-blue-500"
         )}>
           <AvatarImage 
-            src={isUser ? "https://github.com/shadcn.png" : "/images/japanese-mom.png"} 
+            src={isUser ? "https://github.com/shadcn.png" : "/images/japanese-mom.jpg"} 
             alt={isUser ? "User Avatar" : "Model Avatar"}
           />
         </Avatar>

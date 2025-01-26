@@ -8,7 +8,7 @@ interface WelcomeMessageProps {
 
 const personaData = {
   caring: {
-    welcome: "こんにちは！困ったときの AI母ちゃんよ。",
+    welcome: "こんにちは！困ったときの なんでもかあちゃんよ。",
     examples: [
       "洗濯の黄ばみはどうやったら取れる？",
       "カレーの匂いが部屋に染みついちゃったけど、どうすれば消える？",

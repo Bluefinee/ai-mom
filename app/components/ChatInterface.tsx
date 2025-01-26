@@ -110,7 +110,7 @@ export function ChatInterface({
         <div className="max-w-4xl mx-auto flex flex-col">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-              AI母ちゃん
+              なんでもかあちゃん
             </h1>
             <Select value={selectedPersona} onValueChange={handlePersonaChange}>
               <SelectTrigger className={isMobile ? "w-32" : "w-[180px]"}>

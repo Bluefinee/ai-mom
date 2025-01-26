@@ -160,7 +160,6 @@ export class GeminiService {
     }
 
     const analysis = this.textAnalysisService.analyzeMessages(messages);
-    console.log('コンテキスト:', analysis);
     this.context = {
       ...this.context,
       ...analysis,
