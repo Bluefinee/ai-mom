@@ -96,20 +96,15 @@ interface Message {
           topK: 40,
         },
       });
- 
+
       const context = SYSTEM_PROMPTS[this.currentPersona as keyof typeof SYSTEM_PROMPTS];
-      // 最新のメッセージのみを使用
       const userMessage = messages[messages.length - 1].content;
- 
+
       const result = await chat.sendMessage(
         `${context}\n\nユーザーのメッセージ: ${userMessage}`
       );
- 
-      const text = result.response.text() || '';
-  
-      return text
-        .replace(/\n/g, '<br>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      return result.response.text() || '';
     } catch (error) {
       console.error('Gemini API Error:', error);
       throw error;
