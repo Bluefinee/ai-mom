@@ -17,13 +17,13 @@ export const metadata: Metadata = {
   title: "AI Mom",
   description: "AI Mom is a chatbot that simulates a caring mother.",
   icons: {
-    icon: '/japanese-mom.jpg'
+    icon: '/images/japanese-mom.jpg'
   },
   openGraph: {
     title: "AI Mom",
     description: "AI Mom is a chatbot that simulates a caring mother.",
     images: [{
-      url: '/japanese-mom.jpg',
+      url: '/images/japanese-mom.jpg',
       width: 800,
       height: 600,
     }],

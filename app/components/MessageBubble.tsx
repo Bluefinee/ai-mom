@@ -1,4 +1,4 @@
-import { Avatar } from "@/components/ui/avatar"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
 
@@ -32,7 +32,12 @@ export function MessageBubble({
         <Avatar className={cn(
           "w-8 h-8 mt-1", 
           isUser ? "bg-pink-500" : "bg-blue-500"
-        )} />
+        )}>
+          <AvatarImage 
+            src={isUser ? "https://github.com/shadcn.png" : "/images/japanese-mom.png"} 
+            alt={isUser ? "User Avatar" : "Model Avatar"}
+          />
+        </Avatar>
       )}
       
       <div className={cn(
