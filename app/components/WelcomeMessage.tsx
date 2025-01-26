@@ -3,36 +3,37 @@ import { Button } from "@/components/ui/button"
 interface WelcomeMessageProps {
   persona: string
   onExampleSelect: (example: string) => void
+  onSendMessage: (content: string) => Promise<void>
 }
 
 const personaData = {
   caring: {
     welcome: "こんにちは！困ったときの AI母ちゃんよ。",
     examples: [
-      "掃除機のゴミパックの替え方がわからない",
-      "シミ抜きの方法を教えて",
-      "レンジの掃除方法は？"
-      ],
-    },
-    strict: {
-      welcome: "さあ、家事の効率化について相談よ！",
-      examples: [
-      "冷蔵庫の整理整頓のコツは？",
-      "洗濯物を早く乾かすには？",
-      "食器の水垢の取り方を教えて"
-      ],
-    },
-    fun: {
-      welcome: "今日も楽しく家事のコツ教えちゃうよ！",
-      examples: [
-      "余り物でパパッと作れる料理は？",
-      "お風呂掃除を楽しくする方法ない？",
-      "子供と一緒に楽しくお片付け！"
-      ],
-    }
+      "洗濯の黄ばみはどうやったら取れる？",
+      "カレーの匂いが部屋に染みついちゃったけど、どうすれば消える？",
+      "お風呂のカビの予防方法を教えて！"
+    ],
+  },
+  strict: {
+    welcome: "さあ、家事の効率化について相談よ！",
+    examples: [
+      "時短で夕食の準備をするコツはある？",
+      "効率的な掃除の順番はどうしたらいい？",
+      "子供のお弁当を早く作るコツを教えて！？"
+    ],
+  },
+  fun: {
+    welcome: "今日も楽しく家事のコツ教えちゃうよ！",
+    examples: [
+      "玉ねぎとじゃがいもが余ったんだけど、簡単なものは作れる？",
+      "トマトとチーズが余ってるんだけど、何か作れる？",
+      "お掃除を楽しくする方法教えて！"
+    ],
+  }
 }
 
-export function WelcomeMessage({ persona, onExampleSelect }: WelcomeMessageProps) {
+export function WelcomeMessage({ persona, onExampleSelect, onSendMessage }: WelcomeMessageProps) {
   const { welcome, examples } = personaData[persona as keyof typeof personaData]
 
   return (
@@ -40,7 +41,15 @@ export function WelcomeMessage({ persona, onExampleSelect }: WelcomeMessageProps
       <p className="text-lg font-medium mb-2">{welcome}</p>
       <div className="flex flex-wrap gap-2">
         {examples.map((example, index) => (
-          <Button key={index} variant="outline" size="sm" onClick={() => onExampleSelect(example)}>
+          <Button 
+            key={index} 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              onExampleSelect(example)
+              onSendMessage(example)
+            }}
+          >
             {example}
           </Button>
         ))}
@@ -48,4 +57,3 @@ export function WelcomeMessage({ persona, onExampleSelect }: WelcomeMessageProps
     </div>
   )
 }
-
