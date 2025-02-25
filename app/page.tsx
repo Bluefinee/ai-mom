@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { PersonaSelection } from "./components/PersonaSelection"
-import { ChatInterface, ConversationSummary } from "./components/ChatInterface"
+import { ChatInterface } from "./components/ChatInterface"
 import { Onboarding } from "./components/Onboarding"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
@@ -15,12 +15,6 @@ export default function Chat() {
   const [error, setError] = useState<string | null>(null)
   const [userName, setUserName] = useState<string>("")
   const [showOnboarding, setShowOnboarding] = useState(true)
-  const [conversationSummary, setConversationSummary] = useState<ConversationSummary>({
-    keywords: [],
-    topics: [],
-    emotionalContext: 'neutral',
-    lastTimestamp: 0
-  })
   const { toast } = useToast()
 
   useEffect(() => {
@@ -69,16 +63,6 @@ export default function Chat() {
 
       if (!response.ok) {
         throw new Error(data.error || "応答の取得に失敗しました")
-      }
-
-      // 会話コンテキストを更新
-      if (data.context) {
-        setConversationSummary({
-          keywords: data.context.keywords || [],
-          topics: data.context.topics || [],
-          emotionalContext: data.context.emotionalContext || 'neutral',
-          lastTimestamp: Date.now()
-        });
       }
 
       // 返答内容にユーザー名を含める場合は、ここで名前に置き換えることもできる
@@ -179,7 +163,6 @@ export default function Chat() {
         selectedPersona={selectedPersona}
         onPersonaChange={handlePersonaChange}
         userName={userName}
-        conversationSummary={conversationSummary}
       />
       <Toaster />
     </div>

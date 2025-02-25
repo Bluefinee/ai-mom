@@ -1,9 +1,7 @@
-import { useState } from "react"
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
 import { motion } from "framer-motion"
-import { MessageFeedback } from "./MessageFeedback"
 
 interface MessageBubbleProps {
   message: {
@@ -24,7 +22,6 @@ export function MessageBubble({
   isFirstInGroup = true,
   isLastInGroup = true 
 }: MessageBubbleProps) {
-  const [showFeedback, setShowFeedback] = useState(false);
   const isUser = message.role === "user"
   const maxWidth = isMobile ? "w-3/4" : "max-w-2xl"
   const timestamp = Number.isInteger(message.timestamp) 
@@ -62,16 +59,6 @@ export function MessageBubble({
     }
   };
 
-  const handleFeedback = (messageId: number, helpful: boolean) => {
-    console.log(`Message ${messageId} feedback: ${helpful ? 'helpful' : 'unhelpful'}`);
-    // ここでフィードバックをサーバーに送信するロジックを追加
-  };
-
-  const handleSave = (messageId: number) => {
-    console.log(`Message ${messageId} saved to favorites`);
-    // ここでお気に入り保存ロジックを追加
-  };
-
   return (
     <div 
       className={cn(
@@ -79,8 +66,6 @@ export function MessageBubble({
         isUser ? "flex-row-reverse space-x-reverse" : "flex-row",
         !isLastInGroup ? "mb-1" : "mb-4"
       )}
-      onMouseEnter={() => !isUser && setShowFeedback(true)}
-      onMouseLeave={() => !isUser && setShowFeedback(false)}
     >
       {isFirstInGroup && (
         <motion.div
@@ -141,13 +126,6 @@ export function MessageBubble({
             {timestamp}
           </span>
           
-          {!isUser && (showFeedback || isMobile) && (
-            <MessageFeedback 
-              messageId={message.timestamp} 
-              onFeedback={handleFeedback} 
-              onSave={handleSave} 
-            />
-          )}
         </div>
       </div>
     </div>

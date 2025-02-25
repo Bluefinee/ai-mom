@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { 
   Select, 
@@ -10,23 +9,15 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
-import { SendHorizontal, ChevronDown, Smile } from "lucide-react"
+import { SendHorizontal, ChevronDown } from "lucide-react"
 import { MessageBubble } from "./MessageBubble"
 import { WelcomeMessage } from "./WelcomeMessage"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { SessionManager } from "@/services/sessiontService"
 import { LoadingIndicator } from "./LoadingIndicator"
-import { ConversationContext } from "./Conversation"
 import { QuickPhrases } from "./QuickPhrases"
 import { VoiceInput } from "./VoiceInput"
 import { Message } from "@/types"
-
-export interface ConversationSummary {
-  keywords: string[];
-  topics: string[];
-  emotionalContext: string;
-  lastTimestamp?: number;
-}
 
 interface ChatInterfaceProps {
   messages: Message[];
@@ -36,7 +27,6 @@ interface ChatInterfaceProps {
   selectedPersona: string;
   onPersonaChange: (persona: string) => void;
   userName: string;
-  conversationSummary: ConversationSummary | null;
 }
 
 const sessionManager = new SessionManager();
@@ -49,17 +39,14 @@ export function ChatInterface({
   selectedPersona, 
   onPersonaChange,
   userName,
-  conversationSummary 
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("")
   const [isFirstVisit, setIsFirstVisit] = useState(true)
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
-  const [showContextExpanded, setShowContextExpanded] = useState(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const isMobile = useMediaQuery("(max-width: 768px)")
 
@@ -114,6 +101,12 @@ export function ChatInterface({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // IME入力中はイベントを処理しない
+    if (e.nativeEvent.isComposing || e.keyCode === 229) {
+      return;
+    }
+    
+    // Enterキーと同時にShiftキーが押されていない場合のみ送信処理を行う
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendClick();
@@ -211,16 +204,7 @@ export function ChatInterface({
         </div>
       </motion.header>
 
-      {conversationSummary && (
-        <ConversationContext
-          keywords={conversationSummary.keywords}
-          topics={conversationSummary.topics}
-          emotionalContext={conversationSummary.emotionalContext}
-          timestamp={conversationSummary.lastTimestamp}
-          expanded={showContextExpanded}
-          onToggleExpand={() => setShowContextExpanded(!showContextExpanded)}
-        />
-      )}
+      {/* ConversationContext コンポーネントを削除 */}
 
       <div 
         ref={chatContainerRef}
@@ -315,64 +299,60 @@ export function ChatInterface({
         )}
       </AnimatePresence>
 
+      {/* 改善されたチャット入力欄 */}
       <motion.div 
-        className="border-t bg-white/80 backdrop-blur-sm"
+        className="border-t bg-white/80 backdrop-blur-sm py-4"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
       >
-        <div className="max-w-4xl mx-auto p-4">
-          <div className="flex items-start gap-2">
-            <div className="flex-1 bg-gray-100 rounded-lg flex items-center pr-2 focus-within:ring-2 focus-within:ring-pink-300 focus-within:bg-white">
-              <Input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={`${getPersonaLabel()}にメッセージを送る...`}
-                className="flex-1 bg-transparent border-none shadow-none focus-visible:ring-0"
-                maxLength={500}
-                disabled={isTyping}
-              />
-              
-              <div className="flex items-center space-x-1">
-                <QuickPhrases 
-                  persona={selectedPersona} 
-                  onSelectPhrase={handleQuickPhrase} 
-                />
-                
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="text-gray-500 hover:text-gray-700"
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 bg-gray-100 rounded-2xl flex items-center p-2 pl-4 pr-3 shadow-sm focus-within:ring-2 focus-within:ring-pink-300 focus-within:bg-white border border-gray-200">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`${getPersonaLabel()}にメッセージを送る...`}
+                  className="flex-1 bg-transparent border-none shadow-none focus-visible:ring-0 resize-none min-h-12 max-h-32 py-2 text-base"
+                  maxLength={500}
                   disabled={isTyping}
-                >
-                  <Smile size={20} />
-                </Button>
-                
-                <VoiceInput 
-                  onTranscription={handleVoiceInput} 
-                  isDisabled={isTyping} 
+                  rows={Math.min(3, Math.max(1, input.split('\n').length))}
                 />
+                
+                <div className="flex items-center space-x-2 ml-2">
+                  <QuickPhrases 
+                    persona={selectedPersona} 
+                    onSelectPhrase={handleQuickPhrase} 
+                  />
+                  
+                  <VoiceInput 
+                    onTranscription={handleVoiceInput} 
+                    isDisabled={isTyping} 
+                  />
+                </div>
               </div>
+              
+              <Button 
+                onClick={handleSendClick}
+                disabled={!validateInput(input) || isTyping}
+                className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-full h-12 w-12 flex items-center justify-center"
+                size="icon"
+              >
+                <SendHorizontal size={20} />
+              </Button>
             </div>
             
-            <Button 
-              onClick={handleSendClick}
-              disabled={!validateInput(input) || isTyping}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-full"
-              size="icon"
-            >
-              <SendHorizontal size={18} />
-            </Button>
-          </div>
-          
-          <div className="flex justify-between mt-2 text-xs text-gray-500">
-            <div className="flex space-x-2">
-              <span>{input.length}/500</span>
-            </div>
-            <div>
-              {isTyping && <span>かあちゃん、返信中...</span>}
+            <div className="flex justify-between text-xs text-gray-500 px-2">
+              <div className="flex space-x-2">
+                <span className={input.length > 400 ? (input.length > 450 ? "text-red-500" : "text-yellow-600") : ""}>
+                  {input.length}/500
+                </span>
+              </div>
+              <div>
+                {isTyping && <span>かあちゃん、返信中...</span>}
+              </div>
             </div>
           </div>
         </div>
