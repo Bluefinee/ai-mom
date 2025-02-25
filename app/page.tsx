@@ -123,11 +123,11 @@ export default function Chat() {
     // 初回メッセージを追加
     let welcomeMessage = "";
     if (persona === "caring") {
-      welcomeMessage = `${name}ちゃん、はじめまして。かあちゃんよ。何かあったらなんでも相談してね。`;
+      welcomeMessage = `${name}、こんにちは。かあちゃんよ。何かあったらなんでも相談してね。`;
     } else if (persona === "strict") {
-      welcomeMessage = `${name}ちゃん、はじめまして。これからお母さんとして色々教えてあげるわね。`;
+      welcomeMessage = `${name}、こんにちは。これからかあちゃんとして色々教えてあげるわね。`;
     } else if (persona === "fun") {
-      welcomeMessage = `${name}ちゃん、はじめまして！楽しいかあちゃんよ～♪ なんでも気軽に話してね！`;
+      welcomeMessage = `${name}、こんにちは！楽しいかあちゃんよ～♪ なんでも気軽に話してね！`;
     }
     
     if (welcomeMessage) {

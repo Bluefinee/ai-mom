@@ -116,7 +116,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               className="object-cover"
             />
           </div>
-          <h3 className="font-bold text-center text-pink-600">思いやりのある母</h3>
+          <h3 className="font-bold text-center text-pink-600">優しいかあちゃん</h3>
           <p className="text-sm text-center text-gray-500 mt-2">
             優しくて温かい。悩みを親身になって聞いてくれる、包み込むような優しさのかあちゃん。
           </p>
@@ -144,7 +144,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               className="object-cover"
             />
           </div>
-          <h3 className="font-bold text-center text-blue-600">厳しい母</h3>
+          <h3 className="font-bold text-center text-blue-600">スパルタかあちゃん</h3>
           <p className="text-sm text-center text-gray-500 mt-2">
             的確なアドバイスでサポート。時に厳しいけれど、愛情に満ちた頼れるかあちゃん。
           </p>
@@ -172,7 +172,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               className="object-cover"
             />
           </div>
-          <h3 className="font-bold text-center text-yellow-600">楽しい母</h3>
+          <h3 className="font-bold text-center text-yellow-600">楽しいかあちゃん</h3>
           <p className="text-sm text-center text-gray-500 mt-2">
             いつも明るく前向き。笑顔とユーモアで毎日を楽しくしてくれるかあちゃん。
           </p>

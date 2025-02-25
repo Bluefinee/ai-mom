@@ -2,9 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const personas = [
-  { id: "caring", name: "思いやりのある母", description: "優しく励ましてくれる母親のようなAI" },
-  { id: "strict", name: "厳しい母", description: "厳しくも愛情深い母親のようなAI" },
-  { id: "fun", name: "楽しい母", description: "ユーモアたっぷりの母親のようなAI" },
+  { id: "caring", name: "優しいかあちゃん", description: "優しく励ましてくれる母親のようなAI" },
+  { id: "strict", name: "スパルタかあちゃん", description: "厳しくも愛情深い母親のようなAI" },
+  { id: "fun", name: "楽しいかあちゃん", description: "ユーモアたっぷりの母親のようなAI" },
 ]
 
 interface PersonaSelectionProps {

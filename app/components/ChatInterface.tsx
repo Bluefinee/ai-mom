@@ -180,9 +180,9 @@ export function ChatInterface({
 
   const getPersonaLabel = () => {
     switch(selectedPersona) {
-      case "caring": return "思いやりのある母";
-      case "strict": return "厳しい母";
-      case "fun": return "楽しい母";
+      case "caring": return "優しいかあちゃん";
+      case "strict": return "スパルタかあちゃん";
+      case "fun": return "楽しいかあちゃん";
       default: return "かあちゃん";
     }
   };
@@ -219,10 +219,9 @@ export function ChatInterface({
               <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent">
                 おふくろAI
               </h1>
-              {/* ユーザー名の表示を削除 */}
             </div>
             <Select value={selectedPersona} onValueChange={handlePersonaChange}>
-              <SelectTrigger className={`${isMobile ? "w-40" : "w-[180px]"} border-indigo-200 focus:ring-indigo-300 focus:border-indigo-300 focus:ring-opacity-50`}>
+              <SelectTrigger className={`${isMobile ? "w-40" : "w-[195px]"} border-indigo-200 focus:ring-indigo-300 focus:border-indigo-300 focus:ring-opacity-50`}>
                 <div className="flex items-center">
                   <span className="mr-2">{getPersonaEmoji()}</span>
                   <SelectValue placeholder="ペルソナを選択" />
@@ -230,13 +229,13 @@ export function ChatInterface({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="caring" className="flex items-center">
-                  思いやりのある母
+                  優しいかあちゃん
                 </SelectItem>
                 <SelectItem value="strict" className="flex items-center">
-                  厳しい母
+                  スパルタかあちゃん
                 </SelectItem>
                 <SelectItem value="fun" className="flex items-center">
-                  楽しい母
+                  楽しいかあちゃん
                 </SelectItem>
               </SelectContent>
             </Select>
