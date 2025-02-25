@@ -1,4 +1,4 @@
-# なんでもかあちゃん (Nandemo Kaachan)
+# おふくろAI (Nandemo Kaachan)
 
 母親のような温かみのあるAIチャットボットと日常生活に関するやり取りを行う。
 

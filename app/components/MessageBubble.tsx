@@ -25,27 +25,42 @@ export function MessageBubble({
   const isUser = message.role === "user"
   const maxWidth = isMobile ? "w-3/4" : "max-w-2xl"
   const timestamp = Number.isInteger(message.timestamp) 
-    ? new Date(message.timestamp).toLocaleString('ja-JP')
-    : new Date().toLocaleString('ja-JP')
+    ? new Date(message.timestamp).toLocaleString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+    : new Date().toLocaleString('ja-JP', { hour: '2-digit', minute: '2-digit' })
 
   // ペルソナごとのスタイル設定
   const getBubbleStyle = () => {
-    if (isUser) return "bg-pink-100";
+    if (isUser) return "bg-indigo-100 text-indigo-900";
     
     switch(persona) {
       case "caring":
-        return "bg-pink-100 border-pink-200 border";
+        return "bg-pink-50 border-pink-100 border text-pink-900";
       case "strict":
-        return "bg-blue-100 border-blue-200 border";
+        return "bg-blue-50 border-blue-100 border text-blue-900";
       case "fun":
-        return "bg-yellow-100 border-yellow-200 border";
+        return "bg-amber-50 border-amber-100 border text-amber-900";
       default:
-        return "bg-blue-100";
+        return "bg-gray-100 text-gray-900";
+    }
+  };
+
+  const getAvatarStyle = () => {
+    if (isUser) return "bg-indigo-100 text-indigo-500";
+    
+    switch(persona) {
+      case "caring":
+        return "bg-pink-100 text-pink-500";
+      case "strict":
+        return "bg-blue-100 text-blue-500";
+      case "fun":
+        return "bg-amber-100 text-amber-500";
+      default:
+        return "bg-gray-100 text-gray-500";
     }
   };
 
   const getAvatarImage = () => {
-    if (isUser) return "https://github.com/shadcn.png";
+    if (isUser) return "https://github.com/shadcn.png"; // ユーザーアバター
     
     switch(persona) {
       case "caring":
@@ -69,13 +84,13 @@ export function MessageBubble({
     >
       {isFirstInGroup && (
         <motion.div
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.2 }}
         >
           <Avatar className={cn(
-            "w-8 h-8 mt-1", 
-            isUser ? "bg-pink-500" : persona === "caring" ? "bg-pink-200" : persona === "strict" ? "bg-blue-200" : "bg-yellow-200"
+            "w-8 h-8 mt-1 shadow-sm", 
+            getAvatarStyle()
           )}>
             <AvatarImage 
               src={getAvatarImage()} 
@@ -92,41 +107,52 @@ export function MessageBubble({
           transition={{ duration: 0.3 }}
           className={cn(
             maxWidth,
-            "px-6 py-4 rounded-lg",
+            "px-6 py-4 shadow-sm",
             getBubbleStyle(),
-            isUser ? "text-right" : "text-left",
+            isUser ? "text-right ml-auto" : "text-left mr-auto",
             {
-              'rounded-t-lg rounded-b-md': !isLastInGroup,
-              'rounded-t-md rounded-b-lg': !isFirstInGroup && isLastInGroup,
-              'rounded-md': !isFirstInGroup && !isLastInGroup,
+              'rounded-2xl rounded-br-md': isUser && isFirstInGroup && !isLastInGroup,
+              'rounded-2xl rounded-tr-md': !isUser && isFirstInGroup && !isLastInGroup,
+              'rounded-2xl rounded-bl-md': isUser && !isFirstInGroup && isLastInGroup,
+              'rounded-2xl rounded-tl-md': !isUser && !isFirstInGroup && isLastInGroup,
+              'rounded-2xl': (isUser && isFirstInGroup && isLastInGroup) || (!isUser && isFirstInGroup && isLastInGroup),
+              'rounded-r-2xl rounded-l-md': isUser && !isFirstInGroup && !isLastInGroup,
+              'rounded-l-2xl rounded-r-md': !isUser && !isFirstInGroup && !isLastInGroup,
             }
           )}
         >
           <ReactMarkdown
-            className="prose prose-sm max-w-none"
+            className="prose prose-sm max-w-none prose-p:my-2 prose-li:my-1"
             components={{
-              ul: ({children}) => <ul className="space-y-2 my-4">{children}</ul>,
+              ul: ({children}) => <ul className="space-y-1 my-2">{children}</ul>,
               li: ({children}) => (
                 <li className="flex items-start">
-                  <span className="mr-2">•</span>
+                  <span className="mr-2 text-indigo-500">•</span>
                   <span>{children}</span>
                 </li>
               ),
-              p: ({children}) => <p className="mb-4 last:mb-0">{children}</p>
+              p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+              a: ({children, href}) => (
+                <a href={href} className="text-indigo-600 hover:text-indigo-700 underline" target="_blank" rel="noopener noreferrer">
+                  {children}
+                </a>
+              ),
+              strong: ({children}) => <strong className="font-bold">{children}</strong>
             }}
           >
             {message.content}
           </ReactMarkdown>
         </motion.div>
-        <div className="flex justify-between items-center">
-          <span className={cn(
-            "text-xs text-gray-400 mt-1",
-            isUser ? "text-right" : "text-left"
+        {isLastInGroup && (
+          <div className={cn(
+            "flex mt-1",
+            isUser ? "justify-end" : "justify-start"
           )}>
-            {timestamp}
-          </span>
-          
-        </div>
+            <span className="text-xs text-gray-400">
+              {timestamp}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )

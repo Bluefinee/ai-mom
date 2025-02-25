@@ -14,7 +14,7 @@ interface PersonaSelectionProps {
 export function PersonaSelection({ onSelect }: PersonaSelectionProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-4xl font-bold mb-8 text-pink-500">なんでもかあちゃん</h1>
+      <h1 className="text-4xl font-bold mb-8 text-pink-500">おふくろAI</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {personas.map((persona) => (
           <TooltipProvider key={persona.id}>
