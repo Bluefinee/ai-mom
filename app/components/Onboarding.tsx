@@ -24,7 +24,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     >
       <div className="w-32 h-32 rounded-full bg-pink-200 overflow-hidden relative">
         <Image 
-          src="/images/kaachan-welcome.png" 
+          src="/images/japanese-mom.jpg" 
           alt="なんでもかあちゃん" 
           width={128}
           height={128}
@@ -109,7 +109,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         >
           <div className="w-24 h-24 mx-auto rounded-full bg-pink-200 overflow-hidden relative mb-3">
             <Image 
-              src="/images/kaachan-caring.png" 
+              src="/images/japanese-mom.jpg" 
               alt="思いやりのあるかあちゃん" 
               width={96}
               height={96}
@@ -137,7 +137,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         >
           <div className="w-24 h-24 mx-auto rounded-full bg-blue-200 overflow-hidden relative mb-3">
             <Image 
-              src="/images/kaachan-strict.png" 
+              src="/images/japanese-mom.jpg" 
               alt="厳しいかあちゃん" 
               width={96}
               height={96}
@@ -165,7 +165,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         >
           <div className="w-24 h-24 mx-auto rounded-full bg-yellow-200 overflow-hidden relative mb-3">
             <Image 
-              src="/images/kaachan-fun.png" 
+              src="/images/japanese-mom.jpg" 
               alt="楽しいかあちゃん" 
               width={96}
               height={96}

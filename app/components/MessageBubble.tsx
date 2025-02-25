@@ -52,13 +52,13 @@ export function MessageBubble({
     
     switch(persona) {
       case "caring":
-        return "/images/japanese-mom.png";
+        return "/images/japanese-mom.jpg";
       case "strict":
-        return "/images/japanese-mom.png";
+        return "/images/japanese-mom.jpg";
       case "fun":
-        return "/images/japanese-mom.png";
+        return "/images/japanese-mom.jpg";
       default:
-        return "/images/japanese-mom.png";
+        return "/images/japanese-mom.jpg";
     }
   };
 
