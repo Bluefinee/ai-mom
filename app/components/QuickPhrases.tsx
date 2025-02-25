@@ -9,54 +9,46 @@ interface QuickPhrasesProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-export function QuickPhrases({ persona, onSelectPhrase, isOpen, setIsOpen }: QuickPhrasesProps) {
-  // ペルソナごとのフレーズ設定
-  const getPhrases = () => {
-    switch(persona) {
-      case "caring":
-        return [
-          "おはよう",
-          "最近どう？",
-          "ありがとう",
-          "助けてもらえる？",
-          "アドバイスが欲しい"
-        ];
-      case "strict":
-        return [
-          "おはよう",
-          "進捗はどう？",
-          "教えてください",
-          "どう思いますか？",
-          "アドバイスをお願いします"
-        ];
-      case "fun":
-        return [
-          "おはよー！",
-          "元気？", 
-          "ありがとう！",
-          "何か面白いこと教えて",
-          "今日は何しようかな"
-        ];
-      default:
-        return [
-          "おはよう",
-          "こんにちは",
-          "ありがとう",
-          "助けて",
-          "アドバイスが欲しい"
-        ];
-    }
-  };
+// WelcomeMessage.tsxから引用した例文（文字数調整版）
+const personaData = {
+  caring: {
+    examples: [
+      "洗濯の黄ばみを取る方法は？",
+      "部屋のカレー臭を消すには？",
+      "お風呂のカビの予防方法は？"
+    ],
+    bgColor: "bg-pink-50",
+    hoverColor: "hover:bg-pink-100",
+    textColor: "text-pink-700",
+    borderColor: "border-pink-100",
+  },
+  strict: {
+    examples: [
+      "夕食を時短で作るコツは？",
+      "効率的な掃除の順番は？",
+      "子供のお弁当を早く作るには？"
+    ],
+    bgColor: "bg-blue-50",
+    hoverColor: "hover:bg-blue-100",
+    textColor: "text-blue-700",
+    borderColor: "border-blue-100",
+  },
+  fun: {
+    examples: [
+      "玉ねぎとじゃがいもで何作れる？",
+      "トマトとチーズの簡単レシピは？",
+      "掃除を楽しくするコツは？"
+    ],
+    bgColor: "bg-amber-50",
+    hoverColor: "hover:bg-amber-100",
+    textColor: "text-amber-700",
+    borderColor: "border-amber-100",
+  }
+};
 
-  // ペルソナに応じた色を設定
-  const getPersonaColor = () => {
-    switch(persona) {
-      case "caring": return "bg-pink-50 hover:bg-pink-100";
-      case "strict": return "bg-blue-50 hover:bg-blue-100";
-      case "fun": return "bg-amber-50 hover:bg-amber-100";
-      default: return "bg-gray-50 hover:bg-gray-100";
-    }
-  };
+export function QuickPhrases({ persona, onSelectPhrase, isOpen, setIsOpen }: QuickPhrasesProps) {
+  // ペルソナに応じた色とフレーズを設定
+  const data = personaData[persona as keyof typeof personaData] || personaData.caring;
 
   return (
     <div className="relative">
@@ -69,7 +61,7 @@ export function QuickPhrases({ persona, onSelectPhrase, isOpen, setIsOpen }: Qui
         aria-haspopup="true"
       >
         <CommandIcon size={16} />
-        <span className="text-xs">よく使うフレーズ</span>
+        <span className="text-xs">聞いてみる</span>
       </Button>
       
       <AnimatePresence>
@@ -78,14 +70,14 @@ export function QuickPhrases({ persona, onSelectPhrase, isOpen, setIsOpen }: Qui
             initial={{ opacity: 0, y: 5, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
-            className="absolute bottom-full mb-2 bg-white rounded-lg shadow-lg p-3 w-64 z-20 border border-indigo-100"
+            className={`absolute bottom-full mb-2 bg-white rounded-lg shadow-lg p-3 w-72 z-20 border ${data.borderColor}`}
             style={{ 
               transformOrigin: "bottom center",
               boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
             }}
           >
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-medium text-indigo-700">よく使うフレーズ</h3>
+              <h3 className={`text-sm font-medium ${data.textColor}`}>聞いてみたいこと</h3>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -96,12 +88,12 @@ export function QuickPhrases({ persona, onSelectPhrase, isOpen, setIsOpen }: Qui
               </Button>
             </div>
             <div className="flex flex-col gap-1">
-              {getPhrases().map((phrase, i) => (
+              {data.examples.map((phrase, i) => (
                 <Button
                   key={i}
                   variant="ghost"
                   size="sm"
-                  className={`justify-start text-left h-8 rounded-md text-gray-700 ${getPersonaColor()} transition-colors`}
+                  className={`justify-start text-left h-auto py-2 px-3 rounded-md text-gray-700 ${data.bgColor} ${data.hoverColor} transition-colors`}
                   onClick={() => {
                     onSelectPhrase(phrase);
                   }}

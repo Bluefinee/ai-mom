@@ -25,14 +25,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       <div className="w-32 h-32 rounded-full bg-pink-200 overflow-hidden relative">
         <Image 
           src="/images/japanese-mom.jpg" 
-          alt="なんでもかあちゃん" 
+          alt="おふくろAI" 
           width={128}
           height={128}
           className="object-cover"
         />
       </div>
       <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-        なんでもかあちゃんへようこそ！
+        おふくろAIへようこそ！
       </h1>
       <p className="text-gray-600">
         かあちゃんと気軽におしゃべりしましょう。日常のちょっとした相談から、家事の知恵袋まで、なんでも聞いてくださいね。

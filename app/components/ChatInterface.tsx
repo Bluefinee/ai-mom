@@ -172,7 +172,7 @@ export function ChatInterface({
   const getPersonaEmoji = () => {
     switch(selectedPersona) {
       case "caring": return "💗";
-      case "strict": return "📝";
+      case "strict": return "⚡️";
       case "fun": return "🎉";
       default: return "💭";
     }
@@ -230,13 +230,13 @@ export function ChatInterface({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="caring" className="flex items-center">
-                  <span className="mr-2">💗</span>思いやりのある母
+                  思いやりのある母
                 </SelectItem>
                 <SelectItem value="strict" className="flex items-center">
-                  <span className="mr-2">📝</span>厳しい母
+                  厳しい母
                 </SelectItem>
                 <SelectItem value="fun" className="flex items-center">
-                  <span className="mr-2">🎉</span>楽しい母
+                  楽しい母
                 </SelectItem>
               </SelectContent>
             </Select>
